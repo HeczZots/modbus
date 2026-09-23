@@ -42,9 +42,7 @@ func ASCIIClient(address string) Client {
 }
 
 // asciiPackager implements Packager interface.
-type asciiPackager struct {
-	SlaveId byte
-}
+type asciiPackager struct{}
 
 // Encode encodes PDU in a ASCII frame:
 //  Start           : 1 char
@@ -53,13 +51,13 @@ type asciiPackager struct {
 //  Data            : 0 up to 2x252 chars
 //  LRC             : 2 chars
 //  End             : 2 chars
-func (mb *asciiPackager) Encode(pdu *ProtocolDataUnit) (adu []byte, err error) {
+func (mb *asciiPackager) Encode(slaveId byte, pdu *ProtocolDataUnit) (adu []byte, err error) {
 	var buf bytes.Buffer
 
 	if _, err = buf.WriteString(asciiStart); err != nil {
 		return
 	}
-	if err = writeHex(&buf, []byte{mb.SlaveId, pdu.FunctionCode}); err != nil {
+	if err = writeHex(&buf, []byte{slaveId, pdu.FunctionCode}); err != nil {
 		return
 	}
 	if err = writeHex(&buf, pdu.Data); err != nil {
@@ -68,7 +66,7 @@ func (mb *asciiPackager) Encode(pdu *ProtocolDataUnit) (adu []byte, err error) {
 	// Exclude the beginning colon and terminating CRLF pair characters
 	var lrc lrc
 	lrc.reset()
-	lrc.pushByte(mb.SlaveId).pushByte(pdu.FunctionCode).pushBytes(pdu.Data)
+	lrc.pushByte(slaveId).pushByte(pdu.FunctionCode).pushBytes(pdu.Data)
 	if err = writeHex(&buf, []byte{lrc.value()}); err != nil {
 		return
 	}

@@ -51,8 +51,6 @@ func TCPClient(address string) Client {
 type tcpPackager struct {
 	// For synchronization between messages of server & client
 	transactionId uint32
-	// Broadcast address is 0
-	SlaveId byte
 }
 
 // Encode adds modbus application protocol header:
@@ -62,7 +60,7 @@ type tcpPackager struct {
 //  Unit identifier: 1 byte
 //  Function code: 1 byte
 //  Data: n bytes
-func (mb *tcpPackager) Encode(pdu *ProtocolDataUnit) (adu []byte, err error) {
+func (mb *tcpPackager) Encode(slaveId byte, pdu *ProtocolDataUnit) (adu []byte, err error) {
 	adu = make([]byte, tcpHeaderSize+1+len(pdu.Data))
 
 	// Transaction identifier
@@ -74,7 +72,7 @@ func (mb *tcpPackager) Encode(pdu *ProtocolDataUnit) (adu []byte, err error) {
 	length := uint16(1 + 1 + len(pdu.Data))
 	binary.BigEndian.PutUint16(adu[4:], length)
 	// Unit identifier
-	adu[6] = mb.SlaveId
+	adu[6] = slaveId
 
 	// PDU
 	adu[tcpHeaderSize] = pdu.FunctionCode
