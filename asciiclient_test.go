@@ -11,13 +11,12 @@ import (
 
 func TestASCIIEncoding(t *testing.T) {
 	encoder := asciiPackager{}
-	encoder.SlaveId = 17
 
 	pdu := ProtocolDataUnit{}
 	pdu.FunctionCode = 3
 	pdu.Data = []byte{0, 107, 0, 3}
 
-	adu, err := encoder.Encode(&pdu)
+	adu, err := encoder.Encode(17, &pdu)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +28,6 @@ func TestASCIIEncoding(t *testing.T) {
 
 func TestASCIIDecoding(t *testing.T) {
 	decoder := asciiPackager{}
-	decoder.SlaveId = 247
 	adu := []byte(":F7031389000A60\r\n")
 
 	pdu, err := decoder.Decode(adu)
@@ -47,15 +45,13 @@ func TestASCIIDecoding(t *testing.T) {
 }
 
 func BenchmarkASCIIEncoder(b *testing.B) {
-	encoder := asciiPackager{
-		SlaveId: 10,
-	}
+	encoder := asciiPackager{}
 	pdu := ProtocolDataUnit{
 		FunctionCode: 1,
 		Data:         []byte{2, 3, 4, 5, 6, 7, 8, 9},
 	}
 	for i := 0; i < b.N; i++ {
-		_, err := encoder.Encode(&pdu)
+		_, err := encoder.Encode(10, &pdu)
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -63,9 +59,7 @@ func BenchmarkASCIIEncoder(b *testing.B) {
 }
 
 func BenchmarkASCIIDecoder(b *testing.B) {
-	decoder := asciiPackager{
-		SlaveId: 10,
-	}
+	decoder := asciiPackager{}
 	adu := []byte(":F7031389000A60\r\n")
 	for i := 0; i < b.N; i++ {
 		_, err := decoder.Decode(adu)

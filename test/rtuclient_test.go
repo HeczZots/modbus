@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/goburrow/modbus"
+	"github.com/HeczZots/modbus"
 )
 
 const (
@@ -18,18 +18,18 @@ const (
 
 func TestRTUClient(t *testing.T) {
 	// Diagslave does not support broadcast id.
+	const slaveId = 17
 	handler := modbus.NewRTUClientHandler(rtuDevice)
-	handler.SlaveId = 17
-	ClientTestAll(t, modbus.NewClient(handler))
+	ClientTestAll(t, modbus.NewClient(handler), slaveId)
 }
 
 func TestRTUClientAdvancedUsage(t *testing.T) {
+	const slaveId = 11
 	handler := modbus.NewRTUClientHandler(rtuDevice)
 	handler.BaudRate = 19200
 	handler.DataBits = 8
 	handler.Parity = "E"
 	handler.StopBits = 1
-	handler.SlaveId = 11
 	handler.Logger = log.New(os.Stdout, "rtu: ", log.LstdFlags)
 	err := handler.Connect()
 	if err != nil {
@@ -38,11 +38,11 @@ func TestRTUClientAdvancedUsage(t *testing.T) {
 	defer handler.Close()
 
 	client := modbus.NewClient(handler)
-	results, err := client.ReadDiscreteInputs(15, 2)
+	results, err := client.ReadDiscreteInputs(slaveId, 15, 2)
 	if err != nil || results == nil {
 		t.Fatal(err, results)
 	}
-	results, err = client.ReadWriteMultipleRegisters(0, 2, 2, 2, []byte{1, 2, 3, 4})
+	results, err = client.ReadWriteMultipleRegisters(slaveId, 0, 2, 2, 2, []byte{1, 2, 3, 4})
 	if err != nil || results == nil {
 		t.Fatal(err, results)
 	}
